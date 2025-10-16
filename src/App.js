@@ -1,24 +1,43 @@
-import logo from './logo.svg';
-import './App.css';
+import { lazy, Suspense } from "react";
+import { Provider } from "react-redux";
+import Body from "./components/Body";
+import Header from "./components/Header";
+import "./index.css";
+import Store from "./utils/store/Store";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+const MainContainer =lazy(()=>import("./components/MainContainer"));
+const VideoWatch = lazy(() => import("./components/VideoWatch"));
 
 function App() {
+  const appRouter = createBrowserRouter([
+    {
+      path: "/",
+       element: (
+        <>
+          <Header />     
+          <Body />       
+        </>
+      ),
+      children: [
+        { path: "/",  
+          element:<Suspense fallback={<h1>Loading...... </h1>}> <MainContainer/> </Suspense>},
+        {
+          path: "/watch",
+          element: (
+            <Suspense fallback={<h1>Loading......</h1>}>
+              <VideoWatch />
+            </Suspense>
+          ),
+        },
+      ],
+    },
+  ]);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={Store}>
+      <div>
+       <RouterProvider router={appRouter} />
+      </div>
+    </Provider>
   );
 }
 
