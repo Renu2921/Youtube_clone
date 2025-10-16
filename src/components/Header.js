@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useCallback } from "react";
 import { Menu ,Search} from "lucide-react";
-import { useDispatch,useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setToggleMenu } from "../utils/store/toggleSlice";
 import { setFilteredList } from "../utils/store/videoListSlice";
 import { useNavigate } from "react-router-dom";
@@ -11,20 +11,23 @@ const dispatch=useDispatch()
 const [search,setSearch]=useState("");
 const [searchSuggestion,setSearchSuggestion]=useState([]);
 const [searchSuggestionShow,setSearchSuggestionShow]=useState(false);
-useEffect(()=>{
+const SearchData = useCallback(async () => {
+    if (!search) return;
+    try {
+      const response = await fetch(
+        `http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${search}`
+      );
+      const jsonData = await response.json();
+      setSearchSuggestion(jsonData?.[1] || []);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [search]);
 
-const timer=setTimeout(()=>SearchData(),500);
-return()=>{
-  clearTimeout(timer);
-}
-},[search]);
-
-const SearchData=async()=>{
-  const response=await fetch(`http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${search}`);
-  const jsonData=await response.json();
-  setSearchSuggestion(jsonData?.[1]);
-  
-}
+  useEffect(() => {
+    const timer = setTimeout(() => SearchData(), 500);
+    return () => clearTimeout(timer);
+  }, [search, SearchData]); 
   const handleToggleMenu=()=>{
     dispatch(setToggleMenu());
   }
